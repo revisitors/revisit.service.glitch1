@@ -1,0 +1,5 @@
+{
+    "domain": "localhost",
+    "port": 8000,
+    "authPort": 8000
+}
