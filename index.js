@@ -55,6 +55,7 @@ function getItem(request, reply) {
     }
 
     reply({
+      id: id,
       content: content
     });
   });
@@ -62,17 +63,18 @@ function getItem(request, reply) {
 
 function add(request, reply) {
   var id = uuid.v4();
-  var content = request.payload.service.content;
+  console.log(request.payload.content)
+  var content = '~~~*~* ' + request.payload.content.toString().toUpperCase() + ' *~*~~~';
 
-  db.put(id, content, function (err, content) {
+  db.put(id, content, function (err) {
     if (err) {
-      console.log(err)
       reply('could not post message').code(400);
       return;
     }
 
     reply({
-      id: id
+      id: id,
+      content: content
     });
   });
 }
