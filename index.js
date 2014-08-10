@@ -1,7 +1,6 @@
 'use strict';
 
 var Hapi = require('hapi');
-var Joi = require('joi');
 var nconf = require('nconf');
 var level = require('level');
 var uuid = require('uuid');
@@ -63,7 +62,6 @@ function getItem(request, reply) {
 
 function add(request, reply) {
   var id = uuid.v4();
-  console.log(request.payload.content)
   var content = '~~~*~* ' + request.payload.content.toString().toUpperCase() + ' *~*~~~';
 
   db.put(id, content, function (err) {
