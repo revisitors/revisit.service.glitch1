@@ -1,5 +1,4 @@
 {
     "domain": "localhost",
-    "port": 8000,
-    "authPort": 8000
+    "port": 8000
 }

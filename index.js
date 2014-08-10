@@ -8,7 +8,7 @@ var uuid = require('uuid');
 
 nconf.argv().env().file({ file: 'local.json' });
 
-var server = Hapi.createServer(nconf.get('domain'), nconf.get('authPort'));
+var server = Hapi.createServer(nconf.get('domain'), nconf.get('port'));
 
 var routes = [
   {
@@ -53,7 +53,7 @@ function getItem(request, reply) {
       reply('No message found').code(404);
       return;
     }
-    
+
     reply({
       content: content
     });
@@ -62,8 +62,9 @@ function getItem(request, reply) {
 
 function add(request, reply) {
   var id = uuid.v4();
+  var content = request.payload.service.content;
 
-  db.put(id, request.payload.content, function (err, content) {
+  db.put(id, content, function (err, content) {
     if (err) {
       console.log(err)
       reply('could not post message').code(400);
