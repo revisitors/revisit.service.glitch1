@@ -4,6 +4,7 @@ var Hapi = require('hapi');
 var nconf = require('nconf');
 var level = require('level');
 var uuid = require('uuid');
+var zalgo = require('zalgotxt');
 
 nconf.argv().env().file({ file: 'local.json' });
 
@@ -62,7 +63,7 @@ function getItem(request, reply) {
 
 function add(request, reply) {
   var id = uuid.v4();
-  var content = '~~~*~* ' + request.payload.content.toString().toUpperCase() + ' *~*~~~';
+  var content = zalgo(request.payload.content.toString());
 
   db.put(id, content, function (err) {
     if (err) {
