@@ -4,6 +4,11 @@ var Hapi = require('hapi');
 var nconf = require('nconf');
 var level = require('level');
 var uuid = require('uuid');
+var gm = require('gm');
+var JSONB = require('json-buffer');
+var Magic = require('mmmagic').Magic;
+
+var magic = new Magic();
 
 nconf.argv().env().file({ file: 'local.json' });
 
@@ -15,13 +20,6 @@ var routes = [
     path: '/',
     config: {
       handler: home
-    }
-  },
-  {
-    method: 'GET',
-    path: '/{id}',
-    config: {
-      handler: getItem
     }
   },
   {
@@ -62,17 +60,36 @@ function getItem(request, reply) {
 
 function add(request, reply) {
   var id = uuid.v4();
-  var content = '~~~*~* ' + request.payload.content.toString().toUpperCase() + ' *~*~~~';
+  var content = JSONB.parse(request.payload.content);
 
-  db.put(id, content, function (err) {
+  magic.detect(content, function (err, mimeType) {
     if (err) {
-      reply('could not post message').code(400);
+      reply(err).code(400);
       return;
     }
 
-    reply({
-      id: id,
-      content: content
-    });
+    console.log('mimetype: ', mimeType)
+    mimeType = mimeType.split(' ')[0];
+
+    gm(content)
+      .options({ imageMagick: true })
+      .noise('laplacian')
+      .toBuffer(mimeType, function (err, buffer) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+
+        db.put(id, content, function (err) {
+          if (err) {
+            reply('could not post image').code(400);
+            return;
+          }
+
+          reply({
+            content: JSONB.stringify(buffer)
+          });
+        });
+      });
   });
 }
