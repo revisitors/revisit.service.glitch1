@@ -39,30 +39,29 @@ function home(request, reply) {
 
 function add(request, reply) {
   var content = request.payload.content;
-  var buffered = new Buffer(content.split(';base64,')[1], 'base64');
+  var buffered = new Buffer(content.data.split(';base64,')[1], 'base64');
 
-  magic.detect(buffered, function (err, mimeType) {
-    if (err) {
-      reply(err).code(400);
-      return;
-    }
+  gm(buffered, 'image.' + content.type)
+    .options({ imageMagick: true })
+    .noise('laplacian')
+    .colors(4)
+    .toBuffer(content.type.split('/')[1], function (err, buffer) {
+      if (err) {
+        console.error(err);
+        return;
+      }
 
-    mimeType = mimeType.split(' ')[0].toLowerCase();
-
-    gm(buffered, 'image.' + mimeType)
-      .options({ imageMagick: true })
-      .noise('laplacian')
-      .contrast(6)
-      .toBuffer(mimeType, function (err, buffer) {
-        if (err) {
-          console.error(err);
-          return;
+      reply({
+        content: {
+          type: content.type,
+          data: 'data:' + content.type + ';base64,' + buffer.toString('base64')
+        },
+        meta: {
+          audio: {
+            type: false,
+            data: false
+          }
         }
-
-        reply({
-          content: 'data:image/' + mimeType.toLowerCase() +
-            ';base64,' + buffer.toString('base64')
-        });
       });
-  });
+    });
 }
