@@ -37,14 +37,18 @@ function home(request, reply) {
   reply('messaging service');
 }
 
+function randomize() {
+  return Math.floor(Math.random() * (250 - 10)) + 10;
+}
+
 function add(request, reply) {
   var content = request.payload.content;
   var buffered = new Buffer(content.data.split(';base64,')[1], 'base64');
 
   gm(buffered, 'image.' + content.type)
     .options({ imageMagick: true })
-    .noise('laplacian')
-    .colors(4)
+    .contrast(6)
+    .colorize(randomize(), randomize(), randomize())
     .toBuffer(content.type.split('/')[1], function (err, buffer) {
       if (err) {
         console.error(err);
