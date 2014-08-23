@@ -14,9 +14,7 @@
     "hapi": "~6.4.0",
     "nconf": "~0.6.9",
     "gm": "~1.16.0",
-    "mmmagic": "~0.3.8",
-    "json-buffer": "~2.0.9",
-    "stopmotion": "~0.0.0"
+    "data-uri-to-buffer": "~0.0.3"
   },
   "devDependencies": {
     "nodemon": "~1.2.1"

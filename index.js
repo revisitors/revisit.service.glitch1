@@ -4,9 +4,7 @@ var Hapi = require('hapi');
 var nconf = require('nconf');
 var uuid = require('uuid');
 var gm = require('gm');
-var Magic = require('mmmagic').Magic;
-
-var magic = new Magic();
+var dataURI = require('data-uri-to-buffer');
 
 nconf.argv().env().file({ file: 'local.json' });
 
@@ -43,29 +41,34 @@ function randomize() {
 
 function add(request, reply) {
   var content = request.payload.content;
-  var buffered = new Buffer(content.data.split(';base64,')[1], 'base64');
 
-  gm(buffered, 'image.' + content.type)
-    .options({ imageMagick: true })
-    .contrast(6)
-    .colorize(randomize(), randomize(), randomize())
-    .toBuffer(content.type.split('/')[1], function (err, buffer) {
-      if (err) {
-        console.error(err);
-        return;
-      }
+  try {
+    var buffered = dataURI(content.data);
+    var contentType = buffered.type.split('/')[1].toLowerCase();
 
-      reply({
-        content: {
-          type: content.type,
-          data: 'data:' + content.type + ';base64,' + buffer.toString('base64')
-        },
-        meta: {
-          audio: {
-            type: false,
-            data: false
-          }
+    gm(buffered, 'image.' + contentType)
+      .options({ imageMagick: true })
+      .contrast(6)
+      .colorize(randomize(), randomize(), randomize())
+      .cycle(5)
+      .toBuffer(contentType, function (err, buffer) {
+        if (err) {
+          throw err;
         }
+
+        reply({
+          content: {
+            data: 'data:image/' + contentType + ';base64,' + buffer.toString('base64')
+          },
+          meta: request.payload.meta || {}
+        });
       });
+  } catch (err) {
+    reply({
+      content: {
+        data: content
+      },
+      meta: request.payload.meta || {}
     });
+  }
 }
