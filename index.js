@@ -76,7 +76,6 @@ function add(request, reply) {
       meta: request.payload.meta || {}
     });
   } catch (err) {
-    console.log('got here')
     reply({
       content: {
         data: 'data:image/' + contentType + ';base64,' + buffered.toString('base64')
