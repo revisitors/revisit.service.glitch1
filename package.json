@@ -1,7 +1,7 @@
 {
-  "name": "revisit.service.relay",
+  "name": "revisit.service.glitch",
   "version": "1.0.0",
-  "description": "revisit.link messaging service API",
+  "description": "revisit.link glitch1 service API",
   "private": true,
   "engines": {
     "node": "~0.10.x",
@@ -13,7 +13,6 @@
   "dependencies": {
     "hapi": "~6.4.0",
     "nconf": "~0.6.9",
-    "gm": "~1.16.0",
     "data-uri-to-buffer": "~0.0.3"
   },
   "devDependencies": {

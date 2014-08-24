@@ -2,9 +2,9 @@
 
 var Hapi = require('hapi');
 var nconf = require('nconf');
-var uuid = require('uuid');
-var gm = require('gm');
 var dataURI = require('data-uri-to-buffer');
+
+var IMG_JPG_CHARS = ['CM', 'FA', 'DM'];
 
 nconf.argv().env().file({ file: 'local.json' });
 
@@ -35,8 +35,8 @@ function home(request, reply) {
   reply('messaging service');
 }
 
-function randomize() {
-  return Math.floor(Math.random() * (250 - 10)) + 10;
+function randomizeJPG() {
+  return IMG_JPG_CHARS[Math.floor(Math.random() * IMG_JPG_CHARS.length)];
 }
 
 function add(request, reply) {
@@ -44,29 +44,29 @@ function add(request, reply) {
 
   try {
     var buffered = dataURI(content.data);
+    var bufferedString = buffered.toString('base64');
     var contentType = buffered.type.split('/')[1].toLowerCase();
+    var imgSize = Buffer.byteLength(bufferedString);
 
-    gm(buffered, 'image.' + contentType)
-      .options({ imageMagick: true })
-      .contrast(6)
-      .colorize(randomize(), randomize(), randomize())
-      .cycle(5)
-      .toBuffer(contentType, function (err, buffer) {
-        if (err) {
-          throw err;
-        }
+    var headerEnd = Math.ceil(imgSize / 30);
+    var bufferedHeaders = bufferedString.slice(0, headerEnd);
+    var bufferedBody = bufferedString.slice(headerEnd, imgSize);
 
-        reply({
-          content: {
-            data: 'data:image/' + contentType + ';base64,' + buffer.toString('base64')
-          },
-          meta: request.payload.meta || {}
-        });
-      });
+    bufferedBody = bufferedBody.replace(/(CC|DD|DE|BB)/g, randomizeJPG());
+
+    buffered = 'data:image/' + contentType + ';base64,' + bufferedHeaders + bufferedBody;
+
+    reply({
+      content: {
+        data: buffered
+      },
+      meta: request.payload.meta || {}
+    });
+
   } catch (err) {
     reply({
       content: {
-        data: content
+        data: 'data:image/' + contentType + ';base64,' + buffered.toString('base64')
       },
       meta: request.payload.meta || {}
     });
