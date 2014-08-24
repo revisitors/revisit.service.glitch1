@@ -4,7 +4,7 @@ var Hapi = require('hapi');
 var nconf = require('nconf');
 var dataURI = require('data-uri-to-buffer');
 
-var IMG_JPG_CHARS = ['CM', 'FA', 'DM'];
+var IMG_JPG_CHARS = ['ñ', 'x', 'I', 'œ', '!'];
 
 nconf.argv().env().file({ file: 'local.json' });
 
@@ -32,29 +32,42 @@ server.route(routes);
 server.start();
 
 function home(request, reply) {
-  reply('messaging service');
+  reply('glitch1 service');
 }
 
 function randomizeJPG() {
-  return IMG_JPG_CHARS[Math.floor(Math.random() * IMG_JPG_CHARS.length)];
+  var randomA = IMG_JPG_CHARS[Math.floor(Math.random() * IMG_JPG_CHARS.length)];
+  var randomB = IMG_JPG_CHARS[Math.floor(Math.random() * IMG_JPG_CHARS.length)];
+  var randomC = IMG_JPG_CHARS[Math.floor(Math.random() * IMG_JPG_CHARS.length)];
+  return Array(15).join(randomA + randomB + randomC);
 }
 
 function add(request, reply) {
   var content = request.payload.content;
+  var buffered = dataURI(content.data);
+
+  var randomizeSlice = function () {
+    var min = Math.ceil(buffered.length / 10);
+    var max = buffered.length - 500;
+
+    return Math.floor(Math.random() * (max - min) + min);
+  };
 
   try {
-    var buffered = dataURI(content.data);
-    var bufferedString = buffered.toString('base64');
     var contentType = buffered.type.split('/')[1].toLowerCase();
-    var imgSize = Buffer.byteLength(bufferedString);
+    var newBuffered;
 
-    var headerEnd = Math.ceil(imgSize / 30);
-    var bufferedHeaders = bufferedString.slice(0, headerEnd);
-    var bufferedBody = bufferedString.slice(headerEnd, imgSize);
-
-    bufferedBody = bufferedBody.replace(/(CC|DD|DE|BB)/g, randomizeJPG());
-
-    buffered = 'data:image/' + contentType + ';base64,' + bufferedHeaders + bufferedBody;
+    switch (contentType) {
+      case 'jpeg':
+        buffered[randomizeSlice()] = randomizeJPG();
+        buffered[randomizeSlice()] = randomizeJPG();
+        buffered[randomizeSlice()] = randomizeJPG();
+        buffered = 'data:image/' + contentType + ';base64,' + buffered.toString('base64');
+        break;
+      default:
+        throw new Error('not a jpeg');
+        break;
+    }
 
     reply({
       content: {
@@ -62,8 +75,8 @@ function add(request, reply) {
       },
       meta: request.payload.meta || {}
     });
-
   } catch (err) {
+    console.log('got here')
     reply({
       content: {
         data: 'data:image/' + contentType + ';base64,' + buffered.toString('base64')
