@@ -1,2 +1,2 @@
-# revisit.link messaging service API
+# revisit.link glitch1 service
 
